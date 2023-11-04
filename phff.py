@@ -1,5 +1,6 @@
 import sys
 from datetime import datetime
+from pathlib import Path
 
 import cv2
 import keyboard
@@ -23,27 +24,41 @@ CONTROLS = {
     "left": Keys.KEY_LEFT,
 }
 
+PARENT_DIRECTORY = Path(f'output_{datetime.now().strftime("%Y%m%d%H%M%S")}')
+PARENT_DIRECTORY.mkdir()
 
-def set_callbacks(emu: DeSmuME) -> None:
-    def set_flag_breakpoint(address: int, size: int) -> None:
-        ...
 
-    emu.memory.register_exec(0x209773C, set_flag_breakpoint)
+def write_frames_to_video(frames: list[Image.Image]) -> str:
+    filename = PARENT_DIRECTORY / f'{datetime.now().strftime("%Y%m%d%H%M%S")}.mp4'
+    video = cv2.VideoWriter(
+        str(filename),
+        cv2.VideoWriter_fourcc(*"avc1"),
+        60,
+        (256, 384),
+    )
+    for img in frames:
+        video.write(cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR))
 
 
 def main() -> None:
     emu = DeSmuME()
     emu.open(sys.argv[1])
 
-    set_callbacks(emu)
     video_frames: list[Image.Image] = []
+
+    def set_flag_breakpoint(frames: list[Image.Image]) -> None:
+        write_frames_to_video(frames)
+
+    emu.memory.register_exec(
+        0x209773C, lambda addr, size: set_flag_breakpoint(video_frames)
+    )
 
     # Create the window for the emulator
     window = emu.create_sdl_window()
 
     while not window.has_quit():
         video_frames.append(emu.screenshot())
-        if len(video_frames) > 1000:
+        if len(video_frames) > 5000:
             video_frames = video_frames[1:]
 
         window.process_input()
@@ -56,17 +71,6 @@ def main() -> None:
 
         emu.cycle()
         window.draw()
-
-        # print(video_frames)
-
-    video = cv2.VideoWriter(
-        f'{datetime.now().strftime("%Y%m%d%H%M%S")}.mp4',
-        cv2.VideoWriter_fourcc(*"avc1"),
-        60,
-        (256, 384),
-    )
-    for img in video_frames:
-        video.write(cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR))
 
 
 if __name__ == "__main__":
