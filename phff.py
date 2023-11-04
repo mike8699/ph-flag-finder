@@ -5,28 +5,10 @@ from pathlib import Path
 from tkinter import filedialog
 
 import cv2
-import keyboard
 import numpy as np
-import win32api
-import win32gui
-from desmume.controls import Keys, keymask
-from desmume.emulator import SCREEN_HEIGHT, SCREEN_WIDTH, DeSmuME
 from PIL import Image
 
-CONTROLS = {
-    "enter": Keys.KEY_START,
-    "right shift": Keys.KEY_SELECT,
-    "q": Keys.KEY_L,
-    "w": Keys.KEY_R,
-    "a": Keys.KEY_Y,
-    "s": Keys.KEY_X,
-    "x": Keys.KEY_A,
-    "z": Keys.KEY_B,
-    "up": Keys.KEY_UP,
-    "down": Keys.KEY_DOWN,
-    "right": Keys.KEY_RIGHT,
-    "left": Keys.KEY_LEFT,
-}
+from _desmume import DeSmuME
 
 PARENT_DIRECTORY = Path(f'output_{datetime.now().strftime("%Y%m%d%H%M%S")}')
 
@@ -88,41 +70,12 @@ def main() -> None:
         0x209773C, lambda addr, size: set_flag_breakpoint(video_frames)
     )
 
-    # Create the window for the emulator
-    window = emu.create_sdl_window()
-
-    # Get a handler for the desmume window
-    window_handle = win32gui.FindWindow(None, "Desmume SDL")
-
-    while not window.has_quit():
+    while not emu.window.has_quit():
         video_frames.append(emu.screenshot())
         if len(video_frames) > 600:
             video_frames = video_frames[1:]
 
-        for key, emulated_button in CONTROLS.items():
-            if keyboard.is_pressed(key):
-                emu.input.keypad_add_key(keymask(emulated_button))
-            else:
-                emu.input.keypad_rm_key(keymask(emulated_button))
-
-        # window.process_input()
-        # If mouse is clicked
-        if win32api.GetKeyState(0x01) < 0:
-            # Get coordinates of click relative to desmume window
-            x, y = win32gui.ScreenToClient(window_handle, win32gui.GetCursorPos())
-            # Adjust y coord to account for clicks on top (non-touch) screen
-            y -= SCREEN_HEIGHT
-
-            # Process input if it's valid
-            if x in range(0, SCREEN_WIDTH) and y in range(0, SCREEN_HEIGHT):
-                emu.input.touch_set_pos(x, y)
-            else:
-                emu.input.touch_release()
-        else:
-            emu.input.touch_release()
-
         emu.cycle()
-        window.draw()
 
 
 if __name__ == "__main__":
