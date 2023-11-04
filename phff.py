@@ -1,6 +1,7 @@
-import sys
 from datetime import datetime
 from pathlib import Path
+
+from tkinter import filedialog
 
 import cv2
 import keyboard
@@ -41,8 +42,10 @@ def write_frames_to_video(frames: list[Image.Image]) -> str:
 
 
 def main() -> None:
+    file_path = filedialog.askopenfilename()
+
     emu = DeSmuME()
-    emu.open(sys.argv[1])
+    emu.open(file_path)
 
     video_frames: list[Image.Image] = []
 
