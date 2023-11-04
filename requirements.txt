@@ -1,0 +1,4 @@
+keyboard
+numpy
+opencv-python
+py-desmume
