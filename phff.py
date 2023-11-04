@@ -15,8 +15,13 @@ PARENT_DIRECTORY = Path(f'output_{datetime.now().strftime("%Y%m%d%H%M%S")}')
 
 @dataclass
 class FlagSet:
-    base_addr: int
+    param0: int
+    param1: int
     param2: int
+    base_address: str  # str so we can store hex form
+    offset_from_base: str  # str so we can store hex form
+    flag_absolute_address: str  # str so we can store hex form
+    flag_bit: str  # str so we can store hex form
     set: bool
     thumbnail: str
     video: str
@@ -51,13 +56,34 @@ def main() -> None:
         screenshot_file = str(PARENT_DIRECTORY / f"{timestamp}.png")
         emu.screenshot().save(screenshot_file)
         emu.savestate.save_file(str(PARENT_DIRECTORY / f"{timestamp}.dsv"))
+
+        r0 = emu.memory.register_arm9.r0
+        r1 = emu.memory.register_arm9.r1
+        r2 = emu.memory.register_arm9.r2
+
+        base_address = r0
+        flag_offset_from_base = (r1 >> 5) * 4
+        flag_bit = 1 << (r1 & 0x1F)
+        while flag_bit > 0x80:
+            flag_bit >>= 8
+            flag_offset_from_base += 1
+
+        flag_absolute_address = base_address + flag_offset_from_base
+
+        set = bool(r2)
+
         (PARENT_DIRECTORY / f"{timestamp}.json").write_text(
             json.dumps(
                 asdict(
                     FlagSet(
-                        base_addr=emu.memory.register_arm9.r0,
-                        param2=emu.memory.register_arm9.r1,
-                        set=bool(emu.memory.register_arm9.r2),
+                        param0=r0,
+                        param1=r1,
+                        param2=r2,
+                        base_address=hex(r0),
+                        offset_from_base=hex(flag_offset_from_base),
+                        flag_absolute_address=hex(flag_absolute_address),
+                        flag_bit=hex(flag_bit),
+                        set=set,
                         thumbnail=screenshot_file,
                         video=video_file,
                     )
