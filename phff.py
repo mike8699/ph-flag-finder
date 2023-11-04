@@ -54,8 +54,6 @@ def write_frames_to_video(frames: list[Image.Image], timestamp: str) -> str:
 def main() -> None:
     file_path = filedialog.askopenfilename()
 
-    flags: list[FlagSet] = []
-
     emu = DeSmuME()
     emu.open(file_path)
 
