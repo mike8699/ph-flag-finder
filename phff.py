@@ -10,7 +10,7 @@ import numpy as np
 import win32api
 import win32gui
 from desmume.controls import Keys, keymask
-from desmume.emulator import DeSmuME
+from desmume.emulator import SCREEN_HEIGHT, SCREEN_WIDTH, DeSmuME
 from PIL import Image
 
 CONTROLS = {
@@ -91,10 +91,8 @@ def main() -> None:
     # Create the window for the emulator
     window = emu.create_sdl_window()
 
-    # FindWindow takes the Window Class name (can be None if unknown), and the window's display text.
+    # Get a handler for the desmume window
     window_handle = win32gui.FindWindow(None, "Desmume SDL")
-    # window_rect = win32gui.GetWindowRect(window_handle)
-    # print(window_rect)
 
     while not window.has_quit():
         video_frames.append(emu.screenshot())
@@ -112,9 +110,16 @@ def main() -> None:
         if win32api.GetKeyState(0x01) < 0:
             # Get coordinates of click relative to desmume window
             x, y = win32gui.ScreenToClient(window_handle, win32gui.GetCursorPos())
-            print("clicked!")
-            print((x, y))
-            print()
+            # Adjust y coord to account for clicks on top (non-touch) screen
+            y -= SCREEN_HEIGHT
+
+            # Process input if it's valid
+            if x in range(0, SCREEN_WIDTH) and y in range(0, SCREEN_HEIGHT):
+                emu.input.touch_set_pos(x, y)
+            else:
+                emu.input.touch_release()
+        else:
+            emu.input.touch_release()
 
         emu.cycle()
         window.draw()
