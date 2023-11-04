@@ -1,14 +1,27 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+import site
 from pathlib import Path
 
-dll_file = next(Path.cwd().rglob('openh*-win64.dll'))
+# Bundle external dll needed for opencv-python
+openh_dll_file = next(Path.cwd().rglob('openh*-win64.dll'))
+datas = [
+    (openh_dll_file, '.'),
+]
+
+# For some reason, pyinstaller doesn't pick up one of the DLLs
+# needed for py-desmume, so we manually bundle it here
+site_packages_dir = Path(site.getsitepackages()[0])
+desmume_dll_file = next(site_packages_dir.rglob('libdesmume.dll'))
+binaries = [
+    (desmume_dll_file, 'desmume')
+]
 
 a = Analysis(
     ['phff.py'],
     pathex=[],
-    binaries=[],
-    datas=[(dll_file, dll_file.name)],
+    binaries=binaries,
+    datas=datas,
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},

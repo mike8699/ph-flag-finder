@@ -1,0 +1,39 @@
+name: Build
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+jobs:
+  lint:
+    name: Build executable
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+          check-latest: true
+
+      - name: Install tox
+        run: |
+          pip install --upgrade pip
+          pip install tox
+
+      - name: Download DLL needed for opencv
+        run: |
+          curl -s -L "http://ciscobinary.openh264.org/openh264-1.8.0-win64.dll.bz2" | bzip2 -d > "openh264-1.8.0-win64.dll"
+
+      - name: Build executable
+        run: tox -e package
+
+      - name: Upload executable
+        uses: actions/upload-artifact@v3
+        with:
+          name: phff
+          path: dist/
