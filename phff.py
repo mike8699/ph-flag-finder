@@ -7,6 +7,8 @@ from tkinter import filedialog
 import cv2
 import keyboard
 import numpy as np
+import win32api
+import win32gui
 from desmume.controls import Keys, keymask
 from desmume.emulator import DeSmuME
 from PIL import Image
@@ -89,18 +91,30 @@ def main() -> None:
     # Create the window for the emulator
     window = emu.create_sdl_window()
 
+    # FindWindow takes the Window Class name (can be None if unknown), and the window's display text.
+    window_handle = win32gui.FindWindow(None, "Desmume SDL")
+    # window_rect = win32gui.GetWindowRect(window_handle)
+    # print(window_rect)
+
     while not window.has_quit():
         video_frames.append(emu.screenshot())
         if len(video_frames) > 600:
             video_frames = video_frames[1:]
-
-        window.process_input()
 
         for key, emulated_button in CONTROLS.items():
             if keyboard.is_pressed(key):
                 emu.input.keypad_add_key(keymask(emulated_button))
             else:
                 emu.input.keypad_rm_key(keymask(emulated_button))
+
+        # window.process_input()
+        # If mouse is clicked
+        if win32api.GetKeyState(0x01) < 0:
+            # Get coordinates of click relative to desmume window
+            x, y = win32gui.ScreenToClient(window_handle, win32gui.GetCursorPos())
+            print("clicked!")
+            print((x, y))
+            print()
 
         emu.cycle()
         window.draw()
