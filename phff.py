@@ -1,4 +1,5 @@
 import json
+import sys
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
@@ -42,7 +43,10 @@ def write_frames_to_video(frames: list[Image.Image], timestamp: str) -> str:
 
 
 def main() -> None:
-    file_path = filedialog.askopenfilename()
+    if len(sys.argv) > 1:
+        file_path = sys.argv[1]
+    else:
+        file_path = filedialog.askopenfilename()
 
     emu = DeSmuME()
     emu.open(file_path)
