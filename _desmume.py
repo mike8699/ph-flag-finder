@@ -1,3 +1,6 @@
+import time
+from tkinter import Button, Label, Tk
+
 import keyboard
 import win32api
 import win32gui
@@ -26,11 +29,54 @@ class DeSmuME(BaseDeSmuME):
     window: DeSmuME_SDL_Window
     window_handle: int
 
-    def __init__(self, dl_name: str = None):
+    def __init__(self, refresh_rate: int = 0, dl_name: str = None):
         super().__init__(dl_name)
         self.window = self.create_sdl_window()
 
+        # Starting timer to control the framerate
+        self._start_time = time.monotonic()
+        self._refresh_rate = refresh_rate
+
+        self.controls_widget = Tk()
+
+        def increase_refresh_rate():
+            self._refresh_rate += 10
+            L["text"] = self._refresh_rate
+
+        def decrease_refresh_rate():
+            self._refresh_rate -= 10
+            if self._refresh_rate < 0:
+                self._refresh_rate = 0
+
+            if self._refresh_rate == 0:
+                L["text"] = "(no limits)"
+            else:
+                L["text"] = self._refresh_rate
+
+        increase_button = Button(
+            self.controls_widget,
+            text="Decrease speed",
+            command=decrease_refresh_rate,
+        )
+        increase_button.pack()
+        decrease_button = Button(
+            self.controls_widget,
+            text="Increase speed",
+            command=increase_refresh_rate,
+        )
+        decrease_button.pack()
+
+        L = Label(self.controls_widget, text="(no limits)")
+        L.pack()
+
     def cycle(self, with_joystick=True) -> None:
+        self.controls_widget.update()
+        if self._refresh_rate > 0:
+            time.sleep(
+                (1 / self._refresh_rate)
+                - ((time.monotonic() - self._start_time) % (1 / self._refresh_rate))
+            )
+
         for key, emulated_button in CONTROLS.items():
             if keyboard.is_pressed(key):
                 self.input.keypad_add_key(keymask(emulated_button))
