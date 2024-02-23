@@ -1,11 +1,12 @@
 import time
-from tkinter import Button, Label, Tk
+from tkinter import Button, Label, Tk, BOTH
+from PIL import Image, ImageTk
 
 import keyboard
 import win32api
 import win32gui
 from desmume.controls import Keys, keymask
-from desmume.emulator import SCREEN_HEIGHT, SCREEN_WIDTH
+from desmume.emulator import SCREEN_WIDTH, SCREEN_HEIGHT_BOTH
 from desmume.emulator import DeSmuME as BaseDeSmuME
 from desmume.emulator import DeSmuME_SDL_Window
 
@@ -24,14 +25,42 @@ CONTROLS = {
     "left": Keys.KEY_LEFT,
 }
 
+class GameWindow:
+    def __init__(self):
+        self.root = Tk()
+        self.root.title("Game Window")
+        self.tk_image = None
+        self.original_image = None  # Store a reference to the original image
+        self.width = SCREEN_WIDTH
+        self.height = SCREEN_HEIGHT_BOTH
+        self.scale_factor = 2
+
+        # Set the initial size of the window
+        self.root.geometry(f"{self.width * self.scale_factor}x{self.height * self.scale_factor}")
+
+        # Create a label to display the image
+        self.image_label = Label(self.root, image=self.tk_image)
+        self.image_label.pack(fill=BOTH, expand=True)
+
+    def update_image(self, new_image: Image.Image):
+        # Keep a reference to the original image
+        self.original_image = new_image.resize((self.width * self.scale_factor, self.height * self.scale_factor), Image.LANCZOS)
+
+        # Convert the new image to a PhotoImage
+        self.tk_image = ImageTk.PhotoImage(self.original_image)
+
+        # Update the label with the new image
+        self.image_label.configure(image=self.tk_image)
+
+        self.root.update()
+
 
 class DeSmuME(BaseDeSmuME):
-    window: DeSmuME_SDL_Window
-    window_handle: int
+    window: GameWindow
 
     def __init__(self, refresh_rate: int = 0, dl_name: str = None):
         super().__init__(dl_name)
-        self.window = self.create_sdl_window()
+        self.window = GameWindow()
 
         # Starting timer to control the framerate
         self._start_time = time.monotonic()
@@ -86,17 +115,19 @@ class DeSmuME(BaseDeSmuME):
         # If mouse is clicked
         if win32api.GetKeyState(0x01) < 0:
             # Get coordinates of click relative to desmume window
-            x, y = win32gui.ScreenToClient(self.window_handle, win32gui.GetCursorPos())
+            x, y = win32gui.ScreenToClient(self.window.root.winfo_id(), win32gui.GetCursorPos())
+            x //= self.window.scale_factor
+            y //= self.window.scale_factor
             # Adjust y coord to account for clicks on top (non-touch) screen
-            y -= SCREEN_HEIGHT
+            y -= (self.window.height // self.window.scale_factor)
 
             # Process input if it's valid
-            if x in range(0, SCREEN_WIDTH) and y in range(0, SCREEN_HEIGHT):
+            if x in range(0, self.window.width) and y in range(0, self.window.height):
                 self.input.touch_set_pos(x, y)
             else:
                 self.input.touch_release()
         else:
             self.input.touch_release()
         super().cycle(with_joystick)
-        self.window.draw()
-        self.window_handle = win32gui.FindWindow(None, "Desmume SDL")
+        self.window.update_image(self.screenshot())
+        
