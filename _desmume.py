@@ -149,13 +149,25 @@ class DeSmuME(BaseDeSmuME):
 
         # If mouse is clicked
         if win32api.GetKeyState(0x01) < 0:
+            window_height = self.pygame_screen.get_height()
+            window_width = self.pygame_screen.get_width()
+
             # Get coordinates of click relative to desmume window
             x, y = win32gui.ScreenToClient(self.window_handle, win32gui.GetCursorPos())
+
             # Adjust y coord to account for clicks on top (non-touch) screen
-            y -= SCREEN_HEIGHT
+            y -= (window_height // 2)
+
+            # Get scale factors in case the screen has been resized
+            x_scale = window_width / SCREEN_WIDTH
+            y_scale = window_height / SCREEN_HEIGHT_BOTH
+
+            # Adjust x and y coordinates based on the scale factor
+            x = int(x / x_scale)
+            y = int(y / y_scale)  # Adjust for the top screen height
 
             # Process input if it's valid
-            if x in range(0, SCREEN_WIDTH) and y in range(0, SCREEN_HEIGHT):
+            if x in range(0, window_width) and y in range(0, window_height):
                 self.input.touch_set_pos(x, y)
             else:
                 self.input.touch_release()
