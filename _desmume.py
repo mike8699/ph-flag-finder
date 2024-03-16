@@ -33,6 +33,7 @@ CONTROLS = {
     "left": Keys.KEY_LEFT,
 }
 
+
 class DeSmuME(BaseDeSmuME):
     def __init__(self, refresh_rate: int = 0, dl_name: str = None):
         super().__init__(dl_name)
@@ -156,7 +157,7 @@ class DeSmuME(BaseDeSmuME):
             x, y = win32gui.ScreenToClient(self.window_handle, win32gui.GetCursorPos())
 
             # Adjust y coord to account for clicks on top (non-touch) screen
-            y -= (window_height // 2)
+            y -= window_height // 2
 
             # Get scale factors in case the screen has been resized
             x_scale = window_width / SCREEN_WIDTH
