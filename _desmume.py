@@ -1,21 +1,20 @@
 import time
+from functools import cached_property
 from tkinter import Button, Label, Tk
 
-import cairo
 import keyboard
 import pygame
 import win32api
 import win32gui
 from desmume.controls import Keys, keymask
 from desmume.emulator import (
-    SCREEN_WIDTH,
     SCREEN_HEIGHT,
     SCREEN_HEIGHT_BOTH,
     SCREEN_PIXEL_SIZE,
+    SCREEN_WIDTH,
 )
 from desmume.emulator import DeSmuME as BaseDeSmuME
-from desmume.emulator import DeSmuME_SDL_Window
-from pygame.locals import QUIT
+from pygame.locals import QUIT, VIDEORESIZE
 
 pygame.init()
 
@@ -34,19 +33,19 @@ CONTROLS = {
     "left": Keys.KEY_LEFT,
 }
 
-
 class DeSmuME(BaseDeSmuME):
-    window: DeSmuME_SDL_Window
-    window_handle: int | None
-
     def __init__(self, refresh_rate: int = 0, dl_name: str = None):
         super().__init__(dl_name)
 
         self.has_quit = False
-        self.window_handle = None
 
-        self.pygame_screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT_BOTH))
+        self.pygame_screen = pygame.display.set_mode(
+            (SCREEN_WIDTH, SCREEN_HEIGHT_BOTH), pygame.RESIZABLE
+        )
         pygame.display.set_caption("ph-flag-finder")
+
+        # Create another surface to draw on
+        self.draw_surface = pygame.surface.Surface((SCREEN_WIDTH, SCREEN_HEIGHT_BOTH))
 
         # Starting timer to control the framerate
         self._start_time = time.monotonic()
@@ -84,53 +83,57 @@ class DeSmuME(BaseDeSmuME):
         L = Label(self.controls_widget, text="(no limits)")
         L.pack()
 
+    @cached_property
+    def window_handle(self) -> int:
+        return win32gui.FindWindow(None, "ph-flag-finder")
+
     def _cycle_pygame_window(self) -> None:
         # Get the framebuffer from the emulator
         gpu_framebuffer = self.display_buffer_as_rgbx()
 
         # Create surfaces from framebuffer
-        upper_surface = cairo.ImageSurface.create_for_data(
+        upper_surface = pygame.image.frombuffer(
             gpu_framebuffer[: SCREEN_PIXEL_SIZE * 4],
-            cairo.FORMAT_RGB24,
-            SCREEN_WIDTH,
-            SCREEN_HEIGHT,
+            (SCREEN_WIDTH, SCREEN_HEIGHT),
+            "RGBX",
         )
 
-        lower_surface = cairo.ImageSurface.create_for_data(
+        lower_surface = pygame.image.frombuffer(
             gpu_framebuffer[SCREEN_PIXEL_SIZE * 4 :],
-            cairo.FORMAT_RGB24,
-            SCREEN_WIDTH,
-            SCREEN_HEIGHT,
+            (SCREEN_WIDTH, SCREEN_HEIGHT),
+            "RGBX",
         )
 
-        # Convert Cairo surfaces to Pygame surfaces
-        upper_image = pygame.image.frombuffer(
-            upper_surface.get_data(), (SCREEN_WIDTH, SCREEN_HEIGHT), "RGBX"
-        )
-
-        lower_image = pygame.image.frombuffer(
-            lower_surface.get_data(), (SCREEN_WIDTH, SCREEN_HEIGHT), "RGBX"
-        )
-
-        # Blit the surfaces onto the screen
-        self.pygame_screen.blit(upper_image, (0, 0))
-        self.pygame_screen.blit(
-            lower_image, (0, SCREEN_HEIGHT)
-        )  # Blit the lower screen below the upper screen
-        pygame.display.flip()
-
-        if not self.window_handle:
-            self.window_handle = win32gui.FindWindow(None, "ph-flag-finder")
-            print(self.window_handle)
+        # Draw the surfaces onto the draw surface
+        self.draw_surface.blit(upper_surface, (0, 0))
+        self.draw_surface.blit(lower_surface, (0, SCREEN_HEIGHT))
 
     def cycle(self, with_joystick=True) -> None:
         for event in pygame.event.get():
             if event.type == QUIT:
                 self.has_quit = True
+            elif event.type == VIDEORESIZE:
+                self.pygame_screen = pygame.display.set_mode(
+                    event.size, pygame.RESIZABLE
+                )
+                self._resize_pygame_window(event.size)
+
         if self.has_quit:
+            self.controls_widget.destroy()
             return
 
         self._cycle_pygame_window()
+
+        # Scale the draw surface to match the size of the screen and blit it on the screen
+        self.pygame_screen.blit(
+            pygame.transform.scale(
+                self.draw_surface, self.pygame_screen.get_rect().size
+            ),
+            (0, 0),
+        )
+        pygame.display.flip()
+
+        # Update control widget and handle input
         self.controls_widget.update()
         if self._refresh_rate > 0:
             time.sleep(
@@ -158,4 +161,19 @@ class DeSmuME(BaseDeSmuME):
                 self.input.touch_release()
         else:
             self.input.touch_release()
+
         super().cycle(with_joystick)
+
+    def _resize_pygame_window(self, new_size: tuple) -> None:
+        """Resize the Pygame window while maintaining the aspect ratio."""
+        current_width, current_height = SCREEN_WIDTH, SCREEN_HEIGHT_BOTH
+        new_width, new_height = new_size
+
+        # Calculate new width based on the aspect ratio
+        aspect_ratio = current_width / current_height
+        new_width = int(new_height * aspect_ratio)
+
+        # Adjust the Pygame screen size to maintain the aspect ratio
+        self.pygame_screen = pygame.display.set_mode(
+            (new_width, new_height), pygame.RESIZABLE
+        )
