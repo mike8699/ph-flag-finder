@@ -1,0 +1,33 @@
+name: CI
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+jobs:
+  lint:
+    name: Linting/style checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: '.python-version'
+          check-latest: true
+
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip
+
+      - name: Install pre-commit
+        run: pip install pre-commit
+
+      - name: Cache pre-commit hooks
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pre-commit/
+          key: pre-commit-cache|${{ env.pythonLocation }}|${{ hashFiles('.pre-commit-config.yaml') }}|${{ hashFiles('setup.cfg') }}
+
+      - name: Run pre-commit checks
+        run: pre-commit run --all-files --verbose
