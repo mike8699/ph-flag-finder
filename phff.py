@@ -33,7 +33,7 @@ class FlagSet:
     video: str
 
 
-def write_frames_to_video(frames: list[Image.Image], timestamp: str) -> str:
+def write_frames_to_video(frames: list[Image.Image], timestamp: str) -> Path:
     """Convert a list of images to a video and writes it to disk."""
     filename = PARENT_DIRECTORY / f"{timestamp}.mp4"
     video = cv2.VideoWriter(
