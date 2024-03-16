@@ -1,6 +1,6 @@
 from functools import cached_property
 from tkinter import Button, Label, Tk
-
+from enum import StrEnum
 import keyboard
 import pygame
 import win32api
@@ -14,8 +14,14 @@ from desmume.emulator import (
 )
 from desmume.emulator import DeSmuME as BaseDeSmuME
 from pygame.locals import QUIT, VIDEORESIZE
+from ndspy.rom import NintendoDSRom
 
-pygame.init()
+
+class Region(StrEnum):
+    US = "E"
+    EU = "P"
+    JP = "J"
+
 
 CONTROLS = {
     "enter": Keys.KEY_START,
@@ -34,6 +40,9 @@ CONTROLS = {
 
 
 class DeSmuME(BaseDeSmuME):
+    rom_region: Region
+    has_quit: bool
+
     def __init__(self, refresh_rate: int = 0, dl_name: str = None):
         super().__init__(dl_name)
 
@@ -82,6 +91,13 @@ class DeSmuME(BaseDeSmuME):
 
         L = Label(self.controls_widget, text="(no limits)")
         L.pack()
+
+    def open(self, file_name: str, auto_resume=True):
+        rom = NintendoDSRom.fromFile(file_name)
+        if rom.name.decode() != "ZELDA_DS:PH":
+            raise ValueError("Invalid ROM!")
+        self.rom_region = rom.idCode.decode()[3]
+        return super().open(file_name, auto_resume)
 
     @cached_property
     def window_handle(self) -> int:
@@ -187,3 +203,6 @@ class DeSmuME(BaseDeSmuME):
         self.pygame_screen = pygame.display.set_mode(
             (new_width, new_height), pygame.RESIZABLE
         )
+
+
+pygame.init()

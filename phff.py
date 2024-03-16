@@ -9,9 +9,14 @@ import cv2
 import numpy as np
 from PIL import Image
 
-from _desmume import DeSmuME
+from _desmume import DeSmuME, Region
 
 PARENT_DIRECTORY = Path(f'output_{datetime.now().strftime("%Y%m%d%H%M%S")}')
+
+SET_FLAG_FUNCTION_ADDR: dict[Region, int] = {
+    Region.US: 0x209773C,
+    Region.EU: 0x209779C,
+}
 
 
 @dataclass
@@ -112,7 +117,8 @@ def main() -> None:
     # Register a breakpoint at the beginning of the set flag function
     # that calls the callback defined above
     emu.memory.register_exec(
-        0x209773C, lambda addr, size: set_flag_breakpoint(video_frames)
+        SET_FLAG_FUNCTION_ADDR[emu.rom_region],
+        lambda addr, size: set_flag_breakpoint(video_frames),
     )
 
     while not emu.has_quit:
