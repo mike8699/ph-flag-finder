@@ -31,3 +31,23 @@ jobs:
 
       - name: Run pre-commit checks
         run: pre-commit run --all-files --verbose
+
+  type-check:
+    name: Type-checking
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version-file: '.python-version'
+          check-latest: true
+
+      - name: Install mypy
+        run: |
+          pip install --upgrade pip
+          pip install mypy
+
+      - name: Run mypy
+        run: mypy .
