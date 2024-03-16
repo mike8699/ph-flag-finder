@@ -1,4 +1,3 @@
-import time
 from functools import cached_property
 from tkinter import Button, Label, Tk
 
@@ -49,7 +48,7 @@ class DeSmuME(BaseDeSmuME):
         self.draw_surface = pygame.surface.Surface((SCREEN_WIDTH, SCREEN_HEIGHT_BOTH))
 
         # Starting timer to control the framerate
-        self._start_time = time.monotonic()
+        self.clock = pygame.time.Clock()
         self._refresh_rate = refresh_rate
 
         self.controls_widget = Tk()
@@ -136,11 +135,9 @@ class DeSmuME(BaseDeSmuME):
 
         # Update control widget and handle input
         self.controls_widget.update()
-        if self._refresh_rate > 0:
-            time.sleep(
-                (1 / self._refresh_rate)
-                - ((time.monotonic() - self._start_time) % (1 / self._refresh_rate))
-            )
+
+        # Limit frame rate
+        self.clock.tick(self._refresh_rate if self._refresh_rate > 0 else 0)
 
         for key, emulated_button in CONTROLS.items():
             if keyboard.is_pressed(key):
