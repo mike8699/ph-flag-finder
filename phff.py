@@ -115,7 +115,7 @@ def main() -> None:
         0x209773C, lambda addr, size: set_flag_breakpoint(video_frames)
     )
 
-    while not emu.window.has_quit():
+    while not emu.has_quit:
         # Save current video frame and discard old ones
         video_frames.append(emu.screenshot())
         if len(video_frames) > 600:
