@@ -38,6 +38,12 @@ CONTROLS = {
     "left": Keys.KEY_LEFT,
 }
 
+FAKE_MIC_BUTTON = "space"
+MIC_ADDRESSES = {
+    Region.US: 0x20EECCF,
+    Region.EU: 0x20EED2F,
+}
+
 
 class DeSmuME(BaseDeSmuME):
     rom_region: Region
@@ -160,6 +166,9 @@ class DeSmuME(BaseDeSmuME):
                 self.input.keypad_add_key(keymask(emulated_button))
             else:
                 self.input.keypad_rm_key(keymask(emulated_button))
+
+        if keyboard.is_pressed(FAKE_MIC_BUTTON):
+            self.memory.unsigned[MIC_ADDRESSES[self.rom_region]] = 0xFF
 
         # If mouse is clicked
         if win32api.GetKeyState(0x01) < 0:
