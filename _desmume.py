@@ -1,4 +1,3 @@
-from functools import cached_property
 from tkinter import Button, Label, Tk
 from enum import StrEnum
 import pygame
@@ -184,8 +183,8 @@ class DeSmuME(BaseDeSmuME):
 
             # Clamp the values to allow for mouse dragging outside window
             self.input.touch_set_pos(
-                pygame.math.clamp(x, 0, window_width), 
-                pygame.math.clamp(y, 0, window_height)
+                pygame.math.clamp(x, 0, window_width),
+                pygame.math.clamp(y, 0, window_height),
             )
         else:
             self.input.touch_release()

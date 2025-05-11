@@ -21,4 +21,24 @@ pip install -r requirements.txt  # Install required components
 python phff.py  # Run the program
 ```
 
+## Linting and type-checking
+
+```bash
+pip install mypy
+pip install pre-commit
+```
+
+### Lint
+
+```bash
+pre-commit run --all-files
+```
+
+### Type-check
+
+```bash
+mypy .
+```
+
+
 > Python 3.12
