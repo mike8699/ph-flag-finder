@@ -48,11 +48,13 @@ MIC_ADDRESSES = {
 class DeSmuME(BaseDeSmuME):
     rom_region: Region
     has_quit: bool
+    mousebtn_held: bool
 
     def __init__(self, refresh_rate: int = 0, dl_name: str | None = None):
         super().__init__(dl_name)
 
         self.has_quit = False
+        self.mousebtn_held = False
 
         self.pygame_screen = pygame.display.set_mode(
             (SCREEN_WIDTH, SCREEN_HEIGHT_BOTH), pygame.RESIZABLE
@@ -171,7 +173,7 @@ class DeSmuME(BaseDeSmuME):
             self.memory.unsigned[MIC_ADDRESSES[self.rom_region]] = 0xFF
 
         # If mouse is clicked
-        if win32api.GetKeyState(0x01) < 0:
+        if pygame.mouse.get_pressed()[0]:
             window_height = self.pygame_screen.get_height()
             window_width = self.pygame_screen.get_width()
 
@@ -189,13 +191,14 @@ class DeSmuME(BaseDeSmuME):
             x = int(x / x_scale)
             y = int(y / y_scale)  # Adjust for the top screen height
 
-            # Process input if it's valid
-            if x in range(0, window_width) and y in range(0, window_height):
-                self.input.touch_set_pos(x, y)
-            else:
-                self.input.touch_release()
+            # Clamp the values to allow for mouse dragging outside window
+            self.input.touch_set_pos(
+                pygame.math.clamp(x, 0, window_width), 
+                pygame.math.clamp(y, 0, window_height)
+            )
         else:
             self.input.touch_release()
+            self.mousebtn_held = False
 
         super().cycle(with_joystick)
 
