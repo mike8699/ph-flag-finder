@@ -90,9 +90,9 @@ class FlagSet:
     video: str
 
 
-def write_frames_to_video(frames: list[Image.Image], func_name: str, timestamp: str) -> Path:
+def write_frames_to_video(frames: list[Image.Image], func_name: str, file_name: str) -> Path:
     """Convert a list of images to a video and writes it to disk."""
-    filename = PARENT_DIRECTORY / func_name / f"{timestamp}.mp4"
+    filename = PARENT_DIRECTORY / func_name / f"{file_name}.mp4"
     video = cv2.VideoWriter(
         str(filename),
         cv2.VideoWriter.fourcc(*"mp4v"),
@@ -118,20 +118,20 @@ def main() -> None:
     video_frames: list[Image.Image] = []
 
     def set_flag_breakpoint(frames: list[Image.Image], func_name: str) -> None:
-        # Get string timestamp to use in filenames
-        timestamp = datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
-        # Generate video
-        video_file = str(write_frames_to_video(frames, func_name, timestamp))
-        # Generate screenshot
-        screenshot_file = str(PARENT_DIRECTORY / func_name / f"{timestamp}.png")
-        emu.screenshot().save(screenshot_file)
-        # Create save state
-        emu.savestate.save_file(str(PARENT_DIRECTORY / func_name/ f"{timestamp}.dsv"))
-
         # Get the function arguments for the set flag function
         r0 = emu.memory.register_arm9.r0
         r1 = emu.memory.register_arm9.r1
         r2 = emu.memory.register_arm9.r2
+
+        # Get string timestamp to use in filenames
+        timestamp = datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
+        # Generate video
+        video_file = str(write_frames_to_video(frames, func_name, f'[{hex(r1)}]-{timestamp}'))
+        # Generate screenshot
+        screenshot_file = str(PARENT_DIRECTORY / func_name / f"[{hex(r1)}]-{timestamp}.png")
+        emu.screenshot().save(screenshot_file)
+        # Create save state
+        emu.savestate.save_file(str(PARENT_DIRECTORY / func_name/ f"[{hex(r1)}]-{timestamp}.dsv"))
 
         # r0 contains the "base address" of the flags in memory
         base_address = r0
@@ -151,7 +151,7 @@ def main() -> None:
         # r2 is a boolean, which determines whether the flag should be set or unset
         set = bool(r2)
 
-        (PARENT_DIRECTORY / func_name / f"{timestamp}.json").write_text(
+        (PARENT_DIRECTORY / func_name / f"[{hex(r1)}]-{timestamp}.json").write_text(
             json.dumps(
                 asdict(
                     FlagSet(
