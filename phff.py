@@ -12,11 +12,19 @@ from PIL import Image
 from _desmume import DeSmuME, Region
 
 PARENT_DIRECTORY = Path(f'output_{datetime.now().strftime("%Y%m%d%H%M%S")}')
+FUNC_NAME_KEY = 'func_name'
+FUNC_ADDR_KEY = 'addr'
 
-SET_FLAG_FUNCTION_ADDR: dict[Region, int] = {
-    Region.US: 0x209773C,
-    Region.EU: 0x209779C,
-}
+
+SET_FLAG_FUNCTION_ADDRS: list[dict[str, dict[Region, int]]] = [
+    {
+        FUNC_NAME_KEY: 'AdventureFlags.Set', 
+        FUNC_ADDR_KEY: {
+            Region.US: 0x209773C,
+            Region.EU: 0x209779C,
+        },
+    }
+]
 
 
 @dataclass
@@ -33,9 +41,9 @@ class FlagSet:
     video: str
 
 
-def write_frames_to_video(frames: list[Image.Image], timestamp: str) -> Path:
+def write_frames_to_video(frames: list[Image.Image], func_name: str, timestamp: str) -> Path:
     """Convert a list of images to a video and writes it to disk."""
-    filename = PARENT_DIRECTORY / f"{timestamp}.mp4"
+    filename = PARENT_DIRECTORY / func_name / f"{timestamp}.mp4"
     video = cv2.VideoWriter(
         str(filename),
         cv2.VideoWriter.fourcc(*"avc1"),
@@ -60,16 +68,16 @@ def main() -> None:
 
     video_frames: list[Image.Image] = []
 
-    def set_flag_breakpoint(frames: list[Image.Image]) -> None:
+    def set_flag_breakpoint(frames: list[Image.Image], func_name: str) -> None:
         # Get string timestamp to use in filenames
-        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
         # Generate video
-        video_file = str(write_frames_to_video(frames, timestamp))
+        video_file = str(write_frames_to_video(frames, func_name, timestamp))
         # Generate screenshot
-        screenshot_file = str(PARENT_DIRECTORY / f"{timestamp}.png")
+        screenshot_file = str(PARENT_DIRECTORY / func_name / f"{timestamp}.png")
         emu.screenshot().save(screenshot_file)
         # Create save state
-        emu.savestate.save_file(str(PARENT_DIRECTORY / f"{timestamp}.dsv"))
+        emu.savestate.save_file(str(PARENT_DIRECTORY / func_name/ f"{timestamp}.dsv"))
 
         # Get the function arguments for the set flag function
         r0 = emu.memory.register_arm9.r0
@@ -94,7 +102,7 @@ def main() -> None:
         # r2 is a boolean, which determines whether the flag should be set or unset
         set = bool(r2)
 
-        (PARENT_DIRECTORY / f"{timestamp}.json").write_text(
+        (PARENT_DIRECTORY / func_name / f"{timestamp}.json").write_text(
             json.dumps(
                 asdict(
                     FlagSet(
@@ -114,12 +122,14 @@ def main() -> None:
             )
         )
 
-    # Register a breakpoint at the beginning of the set flag function
+    # Register a breakpoint at the beginning of any set flag function
     # that calls the callback defined above
-    emu.memory.register_exec(
-        SET_FLAG_FUNCTION_ADDR[emu.rom_region],
-        lambda addr, size: set_flag_breakpoint(video_frames),
-    )
+    for func in SET_FLAG_FUNCTION_ADDRS:
+        Path.mkdir(PARENT_DIRECTORY / func[FUNC_NAME_KEY])
+        emu.memory.register_exec(
+            func[FUNC_ADDR_KEY][emu.rom_region],
+            lambda addr, size: set_flag_breakpoint(video_frames, func[FUNC_NAME_KEY]),
+        )
 
     while not emu.has_quit:
         # Save current video frame and discard old ones
