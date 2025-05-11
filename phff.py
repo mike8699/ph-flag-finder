@@ -23,56 +23,56 @@ SET_FLAG_FUNCTION_ADDRS: list[dict[str, dict[Region, int]]] = [
             Region.US: 0x209773C,
             Region.EU: 0x209779C,
         },
-    },
-    {
-        FUNC_NAME_KEY: 'Course.SetFlag0', 
-        FUNC_ADDR_KEY: {
-            Region.US: 0x207D77C,
-            Region.EU: 0x207D7DC,
-        },
-    },
-    {
-        FUNC_NAME_KEY: 'Course.SetFlag1', 
-        FUNC_ADDR_KEY: {
-            Region.US: 0x207D7E8,
-            Region.EU: 0x207D848,
-        },
-    },
-    {
-        FUNC_NAME_KEY: 'MapData.SetFlag0', 
-        FUNC_ADDR_KEY: {
-            Region.US: 0x20973AC,
-            Region.EU: 0x209740C,
-        },
-    },
-    {
-        FUNC_NAME_KEY: 'MapData.SetFlag1', 
-        FUNC_ADDR_KEY: {
-            Region.US: 0x2097418,
-            Region.EU: 0x2097478,
-        },
-    },
-    {
-        FUNC_NAME_KEY: 'MapData.SetFlag2', 
-        FUNC_ADDR_KEY: {
-            Region.US: 0x2097484,
-            Region.EU: 0x20974E4,
-        },
-    },
-    {
-        FUNC_NAME_KEY: 'MapData.SetFlag3', 
-        FUNC_ADDR_KEY: {
-            Region.US: 0x20974F0,
-            Region.EU: 0x2097550,
-        },
-    },
-    {
-        FUNC_NAME_KEY: 'MapData.SetFlag4', 
-        FUNC_ADDR_KEY: {
-            Region.US: 0x209755C,
-            Region.EU: 0x20975BC,
-        },
     }
+    # {
+    #     FUNC_NAME_KEY: 'Course.SetFlag0', 
+    #     FUNC_ADDR_KEY: {
+    #         Region.US: 0x207D77C,
+    #         Region.EU: 0x207D7DC,
+    #     },
+    # },
+    # {
+    #     FUNC_NAME_KEY: 'Course.SetFlag1', 
+    #     FUNC_ADDR_KEY: {
+    #         Region.US: 0x207D7E8,
+    #         Region.EU: 0x207D848,
+    #     },
+    # },
+    # {
+    #     FUNC_NAME_KEY: 'MapData.SetFlag0', 
+    #     FUNC_ADDR_KEY: {
+    #         Region.US: 0x20973AC,
+    #         Region.EU: 0x209740C,
+    #     },
+    # },
+    # {
+    #     FUNC_NAME_KEY: 'MapData.SetFlag1', 
+    #     FUNC_ADDR_KEY: {
+    #         Region.US: 0x2097418,
+    #         Region.EU: 0x2097478,
+    #     },
+    # },
+    # {
+    #     FUNC_NAME_KEY: 'MapData.SetFlag2', 
+    #     FUNC_ADDR_KEY: {
+    #         Region.US: 0x2097484,
+    #         Region.EU: 0x20974E4,
+    #     },
+    # },
+    # {
+    #     FUNC_NAME_KEY: 'MapData.SetFlag3', 
+    #     FUNC_ADDR_KEY: {
+    #         Region.US: 0x20974F0,
+    #         Region.EU: 0x2097550,
+    #     },
+    # },
+    # {
+    #     FUNC_NAME_KEY: 'MapData.SetFlag4', 
+    #     FUNC_ADDR_KEY: {
+    #         Region.US: 0x209755C,
+    #         Region.EU: 0x20975BC,
+    #     },
+    # }
 ]
 
 
