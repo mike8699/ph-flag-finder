@@ -1,7 +1,6 @@
 from functools import cached_property
 from tkinter import Button, Label, Tk
 from enum import StrEnum
-import keyboard
 import pygame
 from desmume.controls import Keys, keymask
 from desmume.emulator import (
@@ -22,21 +21,21 @@ class Region(StrEnum):
 
 
 CONTROLS = {
-    "enter": Keys.KEY_START,
-    "right shift": Keys.KEY_SELECT,
-    "q": Keys.KEY_L,
-    "w": Keys.KEY_R,
-    "a": Keys.KEY_Y,
-    "s": Keys.KEY_X,
-    "x": Keys.KEY_A,
-    "z": Keys.KEY_B,
-    "up": Keys.KEY_UP,
-    "down": Keys.KEY_DOWN,
-    "right": Keys.KEY_RIGHT,
-    "left": Keys.KEY_LEFT,
+    pygame.K_RETURN: Keys.KEY_START,
+    pygame.K_RSHIFT: Keys.KEY_SELECT,
+    pygame.K_q: Keys.KEY_L,
+    pygame.K_w: Keys.KEY_R,
+    pygame.K_a: Keys.KEY_Y,
+    pygame.K_s: Keys.KEY_X,
+    pygame.K_x: Keys.KEY_A,
+    pygame.K_z: Keys.KEY_B,
+    pygame.K_UP: Keys.KEY_UP,
+    pygame.K_DOWN: Keys.KEY_DOWN,
+    pygame.K_RIGHT: Keys.KEY_RIGHT,
+    pygame.K_LEFT: Keys.KEY_LEFT,
 }
 
-FAKE_MIC_BUTTON = "space"
+FAKE_MIC_BUTTON = pygame.K_SPACE
 MIC_ADDRESSES = {
     Region.US: 0x20EECCF,
     Region.EU: 0x20EED2F,
@@ -156,12 +155,12 @@ class DeSmuME(BaseDeSmuME):
         self.clock.tick(self._refresh_rate if self._refresh_rate > 0 else 0)
 
         for key, emulated_button in CONTROLS.items():
-            if keyboard.is_pressed(key):
+            if pygame.key.get_pressed()[key]:
                 self.input.keypad_add_key(keymask(emulated_button))
             else:
                 self.input.keypad_rm_key(keymask(emulated_button))
 
-        if keyboard.is_pressed(FAKE_MIC_BUTTON):
+        if pygame.key.get_pressed()[FAKE_MIC_BUTTON]:
             self.memory.unsigned[MIC_ADDRESSES[self.rom_region]] = 0xFF
 
         # If mouse is clicked
