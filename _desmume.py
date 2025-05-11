@@ -3,8 +3,6 @@ from tkinter import Button, Label, Tk
 from enum import StrEnum
 import keyboard
 import pygame
-import win32api
-import win32gui
 from desmume.controls import Keys, keymask
 from desmume.emulator import (
     SCREEN_HEIGHT,
@@ -48,13 +46,11 @@ MIC_ADDRESSES = {
 class DeSmuME(BaseDeSmuME):
     rom_region: Region
     has_quit: bool
-    mousebtn_held: bool
 
     def __init__(self, refresh_rate: int = 0, dl_name: str | None = None):
         super().__init__(dl_name)
 
         self.has_quit = False
-        self.mousebtn_held = False
 
         self.pygame_screen = pygame.display.set_mode(
             (SCREEN_WIDTH, SCREEN_HEIGHT_BOTH), pygame.RESIZABLE
@@ -106,10 +102,6 @@ class DeSmuME(BaseDeSmuME):
             raise ValueError("Invalid ROM!")
         self.rom_region = rom.idCode.decode()[3]
         return super().open(file_name, auto_resume)
-
-    @cached_property
-    def window_handle(self) -> int:
-        return win32gui.FindWindow(None, "ph-flag-finder")
 
     def _cycle_pygame_window(self) -> None:
         # Get the framebuffer from the emulator
@@ -178,7 +170,7 @@ class DeSmuME(BaseDeSmuME):
             window_width = self.pygame_screen.get_width()
 
             # Get coordinates of click relative to desmume window
-            x, y = win32gui.ScreenToClient(self.window_handle, win32gui.GetCursorPos())
+            x, y = pygame.mouse.get_pos()
 
             # Adjust y coord to account for clicks on top (non-touch) screen
             y -= window_height // 2
