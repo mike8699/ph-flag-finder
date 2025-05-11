@@ -95,7 +95,7 @@ def write_frames_to_video(frames: list[Image.Image], func_name: str, timestamp: 
     filename = PARENT_DIRECTORY / func_name / f"{timestamp}.mp4"
     video = cv2.VideoWriter(
         str(filename),
-        cv2.VideoWriter.fourcc(*"avc1"),
+        cv2.VideoWriter.fourcc(*"mp4v"),
         60,
         (256, 384),
     )
