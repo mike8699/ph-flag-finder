@@ -36,8 +36,8 @@ CONTROLS = {
 
 FAKE_MIC_BUTTON = pygame.K_SPACE
 MIC_ADDRESSES = {
-    Region.US: 0x20EECCF,
-    Region.EU: 0x20EED2F,
+    Region.US: 0x20EEC01,
+    Region.EU: 0x20EEC61,
 }
 
 
