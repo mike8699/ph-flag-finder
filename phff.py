@@ -13,63 +13,51 @@ from _desmume import DeSmuME, Region
 
 PARENT_DIRECTORY = Path(f'output_{datetime.now().strftime("%Y%m%d%H%M%S")}')
 
-FUNC_NAMES = [
-    "AdventureFlags.Set",
-]
-
-
 SET_FLAG_FUNCTION_ADDRS: list[dict[str, dict[Region, int]]] = [
     {
-        FUNC_NAMES[0]: {
+        "AdventureFlags.Set": {
             Region.US: 0x209773C,
             Region.EU: 0x209779C,
         },
-    }
+    },
     # {
-    #     FUNC_NAME_KEY: 'Course.SetFlag0',
-    #     FUNC_ADDR_KEY: {
+    #     "Course.SetFlag0": {
     #         Region.US: 0x207D77C,
     #         Region.EU: 0x207D7DC,
     #     },
     # },
     # {
-    #     FUNC_NAME_KEY: 'Course.SetFlag1',
-    #     FUNC_ADDR_KEY: {
+    #     Course.SetFlag1: {
     #         Region.US: 0x207D7E8,
     #         Region.EU: 0x207D848,
     #     },
     # },
     # {
-    #     FUNC_NAME_KEY: 'MapData.SetFlag0',
-    #     FUNC_ADDR_KEY: {
+    #     MapData.SetFlag0: {
     #         Region.US: 0x20973AC,
     #         Region.EU: 0x209740C,
     #     },
     # },
     # {
-    #     FUNC_NAME_KEY: 'MapData.SetFlag1',
-    #     FUNC_ADDR_KEY: {
+    #     MapData.SetFlag1: {
     #         Region.US: 0x2097418,
     #         Region.EU: 0x2097478,
     #     },
     # },
     # {
-    #     FUNC_NAME_KEY: 'MapData.SetFlag2',
-    #     FUNC_ADDR_KEY: {
+    #     MapData.SetFlag2: {
     #         Region.US: 0x2097484,
     #         Region.EU: 0x20974E4,
     #     },
     # },
     # {
-    #     FUNC_NAME_KEY: 'MapData.SetFlag3',
-    #     FUNC_ADDR_KEY: {
+    #     MapData.SetFlag3: {
     #         Region.US: 0x20974F0,
     #         Region.EU: 0x2097550,
     #     },
     # },
     # {
-    #     FUNC_NAME_KEY: 'MapData.SetFlag4',
-    #     FUNC_ADDR_KEY: {
+    #     MapData.SetFlag4: {
     #         Region.US: 0x209755C,
     #         Region.EU: 0x20975BC,
     #     },
