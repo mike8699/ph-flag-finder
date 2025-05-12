@@ -46,7 +46,7 @@ python phff.py [rom_path]
 
 The `rom_path` arg is optional. If omitted, a file dialog window will automatically pop up.
 
-> The ROM must be Zelda: PH. Only E and P versions are supported for now.
+> The ROM must be Zelda: PH. Only US (E) and European (P) versions are supported for now.
 
 ## Linting and type-checking
 
