@@ -61,7 +61,7 @@ SET_FLAG_FUNCTION_ADDRS: list[dict[str, dict[Region, int]]] = [
             Region.US: 0x209755C,
             Region.EU: 0x20975BC,
         },
-    }
+    },
 ]
 
 
@@ -115,7 +115,7 @@ def main() -> None:
                 if func[key][emu.rom_region] == address:
                     func_name = key
                     break
-                    
+
         # Check if the function folder exists, and create it if it doesn't.
         if not Path.exists(PARENT_DIRECTORY / func_name):
             Path.mkdir(PARENT_DIRECTORY / func_name)
