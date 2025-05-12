@@ -6,7 +6,7 @@ Flag finder for Zelda: PH
 
 ### Windows
 
-Microsoft's Visual C++ Redistributable is required. 
+Microsoft's Visual C++ Redistributable is required.
 
 Install the required components:
 
