@@ -20,48 +20,48 @@ SET_FLAG_FUNCTION_ADDRS: list[dict[str, dict[Region, int]]] = [
             Region.EU: 0x209779C,
         },
     },
-    # {
-    #     "Course.SetFlag0": {
-    #         Region.US: 0x207D77C,
-    #         Region.EU: 0x207D7DC,
-    #     },
-    # },
-    # {
-    #     Course.SetFlag1: {
-    #         Region.US: 0x207D7E8,
-    #         Region.EU: 0x207D848,
-    #     },
-    # },
-    # {
-    #     MapData.SetFlag0: {
-    #         Region.US: 0x20973AC,
-    #         Region.EU: 0x209740C,
-    #     },
-    # },
-    # {
-    #     MapData.SetFlag1: {
-    #         Region.US: 0x2097418,
-    #         Region.EU: 0x2097478,
-    #     },
-    # },
-    # {
-    #     MapData.SetFlag2: {
-    #         Region.US: 0x2097484,
-    #         Region.EU: 0x20974E4,
-    #     },
-    # },
-    # {
-    #     MapData.SetFlag3: {
-    #         Region.US: 0x20974F0,
-    #         Region.EU: 0x2097550,
-    #     },
-    # },
-    # {
-    #     MapData.SetFlag4: {
-    #         Region.US: 0x209755C,
-    #         Region.EU: 0x20975BC,
-    #     },
-    # }
+    {
+        "Course.SetFlag0": {
+            Region.US: 0x207D77C,
+            Region.EU: 0x207D7DC,
+        },
+    },
+    {
+        "Course.SetFlag1": {
+            Region.US: 0x207D7E8,
+            Region.EU: 0x207D848,
+        },
+    },
+    {
+        "MapData.SetFlag0": {
+            Region.US: 0x20973AC,
+            Region.EU: 0x209740C,
+        },
+    },
+    {
+        "MapData.SetFlag1": {
+            Region.US: 0x2097418,
+            Region.EU: 0x2097478,
+        },
+    },
+    {
+        "MapData.SetFlag2": {
+            Region.US: 0x2097484,
+            Region.EU: 0x20974E4,
+        },
+    },
+    {
+        "MapData.SetFlag3": {
+            Region.US: 0x20974F0,
+            Region.EU: 0x2097550,
+        },
+    },
+    {
+        "MapData.SetFlag4": {
+            Region.US: 0x209755C,
+            Region.EU: 0x20975BC,
+        },
+    }
 ]
 
 
@@ -108,7 +108,18 @@ def main() -> None:
 
     video_frames: list[Image.Image] = []
 
-    def set_flag_breakpoint(frames: list[Image.Image], func_name: str) -> None:
+    def set_flag_breakpoint(address, size) -> None:
+        # Get the appropriate function name using the monitored address
+        for func in SET_FLAG_FUNCTION_ADDRS:
+            for key in func.keys():
+                if func[key][emu.rom_region] == address:
+                    func_name = key
+                    break
+                    
+        # Check if the function folder exists, and create it if it doesn't.
+        if not Path.exists(PARENT_DIRECTORY / func_name):
+            Path.mkdir(PARENT_DIRECTORY / func_name)
+
         # Get the function arguments for the set flag function
         r0 = emu.memory.register_arm9.r0
         r1 = emu.memory.register_arm9.r1
@@ -137,7 +148,7 @@ def main() -> None:
         # File name
         file_name = f"{timestamp}-[{hex(flag_absolute_address)}_{hex(flag_bit)}]"
         # Generate video
-        video_file = str(write_frames_to_video(frames, func_name, file_name))
+        video_file = str(write_frames_to_video(video_frames, func_name, file_name))
         # Generate screenshot
         screenshot_file = str(PARENT_DIRECTORY / func_name / f"{file_name}.png")
         emu.screenshot().save(screenshot_file)
@@ -164,14 +175,13 @@ def main() -> None:
             )
         )
 
-    # Register a breakpoint at the beginning of the set flag function
+    # Register a breakpoint at the beginning of all defined flag functions (of SET_FLAG_FUNCTION_ADDRS)
     # that calls the callback defined above
-    for i, func in enumerate(SET_FLAG_FUNCTION_ADDRS):
+    for func in SET_FLAG_FUNCTION_ADDRS:
         for key in func.keys():
-            Path.mkdir(PARENT_DIRECTORY / key)
             emu.memory.register_exec(
                 func[key][emu.rom_region],
-                lambda addr, size: set_flag_breakpoint(video_frames, key),
+                set_flag_breakpoint,
             )
 
     while not emu.has_quit:
