@@ -1,10 +1,6 @@
-from functools import cached_property
 from tkinter import Button, Label, Tk
 from enum import StrEnum
-import keyboard
 import pygame
-import win32api
-import win32gui
 from desmume.controls import Keys, keymask
 from desmume.emulator import (
     SCREEN_HEIGHT,
@@ -24,21 +20,21 @@ class Region(StrEnum):
 
 
 CONTROLS = {
-    "enter": Keys.KEY_START,
-    "right shift": Keys.KEY_SELECT,
-    "q": Keys.KEY_L,
-    "w": Keys.KEY_R,
-    "a": Keys.KEY_Y,
-    "s": Keys.KEY_X,
-    "x": Keys.KEY_A,
-    "z": Keys.KEY_B,
-    "up": Keys.KEY_UP,
-    "down": Keys.KEY_DOWN,
-    "right": Keys.KEY_RIGHT,
-    "left": Keys.KEY_LEFT,
+    pygame.K_RETURN: Keys.KEY_START,
+    pygame.K_RSHIFT: Keys.KEY_SELECT,
+    pygame.K_q: Keys.KEY_L,
+    pygame.K_w: Keys.KEY_R,
+    pygame.K_a: Keys.KEY_Y,
+    pygame.K_s: Keys.KEY_X,
+    pygame.K_x: Keys.KEY_A,
+    pygame.K_z: Keys.KEY_B,
+    pygame.K_UP: Keys.KEY_UP,
+    pygame.K_DOWN: Keys.KEY_DOWN,
+    pygame.K_RIGHT: Keys.KEY_RIGHT,
+    pygame.K_LEFT: Keys.KEY_LEFT,
 }
 
-FAKE_MIC_BUTTON = "space"
+FAKE_MIC_BUTTON = pygame.K_SPACE
 MIC_ADDRESSES = {
     Region.US: 0x20EECCF,
     Region.EU: 0x20EED2F,
@@ -105,10 +101,6 @@ class DeSmuME(BaseDeSmuME):
         self.rom_region = rom.idCode.decode()[3]
         return super().open(file_name, auto_resume)
 
-    @cached_property
-    def window_handle(self) -> int:
-        return win32gui.FindWindow(None, "ph-flag-finder")
-
     def _cycle_pygame_window(self) -> None:
         # Get the framebuffer from the emulator
         gpu_framebuffer = self.display_buffer_as_rgbx()
@@ -162,21 +154,21 @@ class DeSmuME(BaseDeSmuME):
         self.clock.tick(self._refresh_rate if self._refresh_rate > 0 else 0)
 
         for key, emulated_button in CONTROLS.items():
-            if keyboard.is_pressed(key):
+            if pygame.key.get_pressed()[key]:
                 self.input.keypad_add_key(keymask(emulated_button))
             else:
                 self.input.keypad_rm_key(keymask(emulated_button))
 
-        if keyboard.is_pressed(FAKE_MIC_BUTTON):
+        if pygame.key.get_pressed()[FAKE_MIC_BUTTON]:
             self.memory.unsigned[MIC_ADDRESSES[self.rom_region]] = 0xFF
 
         # If mouse is clicked
-        if win32api.GetKeyState(0x01) < 0:
+        if pygame.mouse.get_pressed()[0]:
             window_height = self.pygame_screen.get_height()
             window_width = self.pygame_screen.get_width()
 
             # Get coordinates of click relative to desmume window
-            x, y = win32gui.ScreenToClient(self.window_handle, win32gui.GetCursorPos())
+            x, y = pygame.mouse.get_pos()
 
             # Adjust y coord to account for clicks on top (non-touch) screen
             y -= window_height // 2
@@ -189,13 +181,14 @@ class DeSmuME(BaseDeSmuME):
             x = int(x / x_scale)
             y = int(y / y_scale)  # Adjust for the top screen height
 
-            # Process input if it's valid
-            if x in range(0, window_width) and y in range(0, window_height):
-                self.input.touch_set_pos(x, y)
-            else:
-                self.input.touch_release()
+            # Clamp the values to allow for mouse dragging outside window
+            self.input.touch_set_pos(
+                pygame.math.clamp(x, 0, window_width),
+                pygame.math.clamp(y, 0, window_height),
+            )
         else:
             self.input.touch_release()
+            self.mousebtn_held = False
 
         super().cycle(with_joystick)
 
