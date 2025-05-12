@@ -1,25 +1,52 @@
-# PH Path Finder
+# PH Flag Finder
+
+Flag finder for Zelda: PH
 
 ## Setup
 
 ### Windows
 
+Microsoft's Visual C++ Redistributable is required. 
+
+Install the required components:
+
 ```bash
-python -m pip install -r requirements.txt  # Install required components
-python phff.py  # Run the program
+python -m pip install -r requirements.txt
 ```
 
 ### Ubuntu/Debian
 
+
+Install Tkinter (if not installed):
+
 ```bash
-sudo apt install python3-tk  # Install tkinter (if not installed)
-
-python3 -m venv venv  # Create a virtual environement (optional but recommended)
-source venv/bin/activate  # Activate it
-
-pip install -r requirements.txt  # Install required components
-python phff.py  # Run the program
+sudo apt install python3-tk
 ```
+
+Create a virtual environment (optional but recommended):
+
+```bash
+python3 -m venv venv
+source venv/bin/activate  # Activate it
+```
+
+Install the required components:
+
+```bash
+pip install -r requirements.txt
+```
+
+## Running PHFF
+
+Run the program like so:
+
+```bash
+python phff.py [rom_path]
+```
+
+The `rom_path` arg is optional. If omitted, a file dialog window will automatically pop up.
+
+> The ROM must be Zelda: PH. Only E and P versions are supported for now.
 
 ## Linting and type-checking
 
@@ -40,5 +67,4 @@ pre-commit run --all-files
 mypy .
 ```
 
-
-> Python 3.12
+Python version: 3.12
