@@ -47,5 +47,5 @@ jobs:
       - name: Upload executable
         uses: actions/upload-artifact@v4
         with:
-          name: phff
+          name: phff-${{ matrix.os }}
           path: dist/
