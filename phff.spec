@@ -7,7 +7,7 @@ from pathlib import Path
 datas = []
 binaries = []
 
-shared_lib = 'libdesmume.' 
+shared_lib = 'libdesmume.'
 if os.name == 'nt':
     shared_lib += 'dll'
 elif os.name == 'posix':
