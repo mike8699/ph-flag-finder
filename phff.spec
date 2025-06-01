@@ -1,21 +1,35 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+import os
 import site
 from pathlib import Path
 
-# Bundle external dll needed for opencv-python
-openh_dll_file = next(Path.cwd().rglob('openh*-win64.dll'))
-datas = [
-    (openh_dll_file, '.'),
-]
+datas = []
+binaries = []
+
+shared_lib = 'libdesmume.' 
+if os.name == 'nt':
+    shared_lib += 'dll'
+elif os.name == 'posix':
+    shared_lib += 'so'
+else:
+    raise RuntimeError(f'Unsupported OS: {os.name}')
 
 # For some reason, pyinstaller doesn't pick up one of the DLLs
 # needed for py-desmume, so we manually bundle it here
 site_packages_dir = Path(site.getsitepackages()[0])
-desmume_dll_file = next(site_packages_dir.rglob('libdesmume.dll'))
-binaries = [
+desmume_dll_file = next(site_packages_dir.rglob(shared_lib))
+binaries += [
     (desmume_dll_file, 'desmume')
 ]
+
+# Bundle external dll needed for opencv-python.
+# Only needed on Windows
+if os.name == 'nt':
+    openh_dll_file = next(Path.cwd().rglob('openh*-win64.dll'))
+    datas += [
+        (openh_dll_file, '.'),
+    ]
 
 a = Analysis(
     ['phff.py'],
