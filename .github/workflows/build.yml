@@ -35,6 +35,12 @@ jobs:
         run: |
           curl -s -L "http://ciscobinary.openh264.org/openh264-1.8.0-win64.dll.bz2" | bzip2 -d > "openh264-1.8.0-win64.dll"
 
+      - name: Install system dependencies
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes libcairo2-dev
+
       - name: Build executable
         run: tox -e package
 
