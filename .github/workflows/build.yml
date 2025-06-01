@@ -8,7 +8,7 @@ on:
 jobs:
   lint:
     name: Build executable
-    runs-on: windows-latest
+    runs-on: ${{ matrix.os }}
     defaults:
       run:
         shell: bash
