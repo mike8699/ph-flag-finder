@@ -12,6 +12,9 @@ jobs:
     defaults:
       run:
         shell: bash
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest]
     steps:
       - uses: actions/checkout@v4
 
@@ -23,10 +26,11 @@ jobs:
 
       - name: Install tox
         run: |
-          pip install --upgrade pip
-          pip install tox
+          python -m pip install --upgrade pip
+          python -m pip install tox
 
       - name: Download DLL needed for opencv
+        if: ${{ matrix.os == 'windows-latest' }}
         run: |
           curl -s -L "http://ciscobinary.openh264.org/openh264-1.8.0-win64.dll.bz2" | bzip2 -d > "openh264-1.8.0-win64.dll"
 
